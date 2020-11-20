@@ -1,51 +1,67 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Names from "./components/Names";
 import withNamesLoading from "./components/withNamesLoading";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 
 function App() {
+  const formik = useFormik({
+    initialValues: {
+      search: ""
+    },
+    validationSchema: Yup.object({
+      search: Yup.string()
+        .required("required")
+        .min(6, "min length is 6")
+        .max(40, "max length is 40")
+    }),
+    onSubmit: (values) => {
+      console.log(values);
+      sendRequest(values.search);
+    }
+  });
+
   const ListLoading = withNamesLoading(Names);
-  const [search, setSearch] = useState("");
+  const [names, setNames] = useState();
   const [appState, setAppState] = useState({
     loading: false,
     names: null
   });
 
   const sendRequest = (query) => {
-    const apiUrl = `https://namespy-api-mu7u3ykctq-lz.a.run.app/v1/web_score?input=${query}`;
-
-    setAppState({ loading: true });
+    let apiUrl = `https://namespy-api-mu7u3ykctq-lz.a.run.app/v1/web_score?input=${query}`;
+    // apiUrl = `https://api.github.com/users/ninsau/repos`;
 
     axios
       .get(apiUrl)
       .then((names) => {
-        const allnames = names.data;
-        setAppState({ loading: false, names: allnames });
-        console.log(allnames);
+        console.log(names);
+        setNames(names);
       })
-      .catch((err) => console.error("ERROR", err));
-  };
-
-  const handleInput = (event) => {
-    setSearch(event.target.value);
-  };
-
-  const handleSearch = (event) => {
-    event.preventDefault();
-
-
-    sendRequest(search);
+      .then(() => setAppState({ loading: false }))
+      .catch((err) => {
+        console.error("ERROR", err);
+        setAppState({ loading: false });
+      });
   };
 
   return (
     <div className="App">
       <div className="container"></div>
       <div className="repo-container">
-        <ListLoading isLoading={appState.loading} names={appState.names} />
+        <ListLoading isLoading={appState.loading} names={names} />
       </div>
-      <h1>{search}</h1>
-      <form onSubmit={handleSearch}>
-        <input type="search" value={search} onChange={handleInput} />
+      <form onSubmit={formik.handleSubmit}>
+        <input
+          id="search"
+          name="search"
+          type="search"
+          {...formik.getFieldProps("search")}
+        />
+        {formik.touched.search && formik.errors.search ? (
+          <div>{formik.errors.search}</div>
+        ) : null}
         <button type="submit">Search</button>
       </form>
       <footer>
