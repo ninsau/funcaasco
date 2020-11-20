@@ -4,15 +4,9 @@ const Names = (props) => {
   if (!names || names.length === 0) return <p>No names, sorry</p>;
 
   return (
-    <ol>
-      {/* {names.map((info) => {
-        return (
-          <li key={info.id} className="list">
-            <span className="repo-text">{info.name} </span>
-          </li>
-        );
-      })} */}
-    </ol>
+    <>
+      <div>{JSON.stringify(names)}</div>
+    </>
   );
 };
 export default Names;
